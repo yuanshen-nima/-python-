@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>荒漠化监测与可视化系统 </title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">
+            <span style="font-size: 24px; margin-right: 10px;">🌍</span>
+            荒漠化监测与可视化系统 <span style="font-size: 12px; background:#e74c3c; padding:2px 6px; border-radius:4px; margin-left:10px;">PRO</span>
+        </div>
+        <div class="info">🎓 毕业设计 | 学生：梁伯钰</div>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="sidebar-nav">
+            <div class="nav-item" data-target="stats" title="土地利用统计">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="nav-item" data-target="indices" title="生态指标分析">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            
+            <div class="nav-item" data-target="video" title="时序演变动画">
+                <i class="fa-solid fa-film"></i>
+            </div>
+
+            <div class="nav-item" data-target="info" title="系统说明">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+        </div>
+
+        <div class="sidebar-panel" id="sidebarPanel">
+            <div class="panel-header">
+                <div class="panel-title" id="panelTitle">
+                    <i class="fa-solid fa-chart-pie"></i> 统计分析
+                </div>
+
+                <div class="panel-tools" id="panelTools">
+                    <span class="tool-btn" data-action="bar" title="切换柱状图"><i class="fa-solid fa-chart-column"></i></span>
+                    <span class="tool-btn" data-action="line" title="切换折线图"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="tool-btn" data-action="restore" title="还原视图"><i class="fa-solid fa-rotate-right"></i></span>
+                    <span class="tool-btn" data-action="save" title="下载图片"><i class="fa-solid fa-download"></i></span>
+                </div>
+
+                <div class="close-btn" id="closeSidebar"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            
+            <div id="content-stats" class="panel-content">
+                <div id="statsChart" class="chart-box"></div>
+                
+                <div class="chart-tip">
+                    <i class="fa-solid fa-lightbulb"></i> 提示：拖动面板右边缘可调整图表宽度。
+                </div>
+
+                <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                <h4 style="margin:0 0 15px 0; color:#2c3e50; font-size: 15px;">
+                    <i class="fa-solid fa-chart-pie"></i> 年度占比概览 (Pie Charts)
+                </h4>
+                
+                <div id="pieGrid" class="pie-grid">
+                    </div>
+            </div>
+
+            <div id="content-indices" class="panel-content">
+                <div id="indicesChart" class="chart-box"></div>
+                <hr style="border:-0.2; border-top:1px solid #eee; margin:20px 0;">
+                <h4 style="margin:0 0 10px 0; color:#2c3e50;">🧠 智能分析</h4>
+                <button id="predictBtn" class="predict-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 启动 2030 趋势预测
+                </button>
+            </div>
+
+            <div id="content-video" class="panel-content">
+                <h3 style="color:#2c3e50; margin-top:0; border-bottom:2px solid #3498db; padding-bottom:10px; display:inline-block;">
+                    🎥 30年生态演变重现
+                    <p>此生态演变过程截取1995, 2000, 2005, 2010, 2015, 2020, 2023, 2025八年数据</p>
+                </h3>
+                <p style="color:#666; font-size:14px; line-height:1.6; text-align:justify;">
+                    基于 <b>Google Earth Engine</b> 云平台计算生成的 1995-2025 年黑河下游土地利用时序分类结果。
+                    <br><br>
+                    视频以 <b>1 秒/年</b> 的速度，动态重现了该区域 30 年间水体萎缩、耕地扩张及荒漠化治理的生态格局变迁过程。
+                </p>
+                
+                <div class="video-wrapper">
+                    <video controls width="100%" autoplay loop muted>
+                        <source src="{{ url_for('static', filename='media/LULC_TimeSeries_Animation.mp4') }}" type="video/mp4">
+                        您的浏览器不支持视频标签。
+                    </video>
+                </div>
+
+                <div class="video-legend">
+                    <h4>🗺️ 视频颜色对照表：</h4>
+                    <ul class="legend-list">
+                        <li><span class="dot" style="background:#1cece0"></span> <b>水体 (青色)</b>：黑河干流及水库</li>
+                        <li><span class="dot" style="background:#0db21f"></span> <b>植被 (深绿)</b>：天然林草与绿洲核心</li>
+                        <li><span class="dot" style="background:#00ff00"></span> <b>耕地 (亮绿)</b>：人工种植区域（主要扩张源）</li>
+                        <li><span class="dot" style="background:#f0f015"></span> <b>沙地 (黄色)</b>：荒漠化边缘地带</li>
+                        <li><span class="dot" style="background:#ff0000"></span> <b>城镇 (红色)</b>：张掖等城市不透水面</li>
+                        <li><span class="dot" style="background:#979a5d"></span> <b>裸地 (褐色)</b>：戈壁与未利用地</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="content-info" class="panel-content">
+                <h3>系统简介</h3>
+                <p>本系统基于 Google Earth Engine (GEE) 云平台，处理了 1995-2025 年多源遥感数据，实现了黑河中游地区荒漠化动态监测。</p>
+                <h4>技术栈</h4>
+                <ul>
+                    <li><b>后端：</b> Flask + SQLAlchemy</li>
+                    <li><b>算法：</b> Random Forest (GEE) + Linear Regression</li>
+                    <li><b>前端：</b> Leaflet + ECharts + ES6 Modules</li>
+                </ul>
+            </div>
+
+            <div class="panel-resizer" id="panelResizer">
+                <div class="handle-grip"></div>
+            </div>
+        </div>
+
+        <div id="map-container">
+            <div id="map"></div>
+            <div class="legend" id="legendBox"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
